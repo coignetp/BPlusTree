@@ -25,7 +25,7 @@ build:
 test:
   stage: test
   script:
-    - ./build/my_executable_test
+    - ./build/bptree_test
   dependencies:
     - build
   artifacts:
