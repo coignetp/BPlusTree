@@ -9,11 +9,11 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
-    - name: configure
-      run: ./configure
-    - name: make
-      run: make
-    - name: make check
-      run: make check
-    - name: make distcheck
-      run: make distcheck
+    - name: build directory
+      run: mkdir build && cd build
+    - name: cmake
+      run: cmake ..
+    - name: cmake build
+      run: cmake build .
+    - name: tests
+      run: ./bptree_test
