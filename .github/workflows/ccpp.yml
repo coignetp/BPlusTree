@@ -17,21 +17,3 @@ jobs:
       run: cmake --build build
     - name: test
       run: cd build && ./bptree_test
-
-  build-windows:
-
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest, windows-2016]
-    
-    steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: recursive
-    - name: configure
-      run: mkdir build && cd build && cmake ..
-    - name: build
-      run: cmake --build build --config Debug
-    - name: test
-      run: cd build && ./bptree_test
