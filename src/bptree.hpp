@@ -26,6 +26,10 @@ namespace BPT
       }
 
       T& SearchItem(const uint64_t& item) {
+        return SearchLeaf(item)->GetItem(item);
+      }
+
+      BPTNode<T> *SearchLeaf(const uint64_t& item) {
         BPTNode<T> *node = &root_;
 
         if (node == nullptr)
@@ -39,9 +43,26 @@ namespace BPT
            node = node[i].second;
         }
 
-        return node->GetItem(item);
+        return node;
       }
 
+      bool AddItem(T item) {
+        uint64_t hash = hashing_(item);
+        BPTNode<T> *leaf = SearchLeaf(hash);
+
+        return leaf.AddItem(item);
+      }
+
+      bool DeleteItem(T item) {
+        return DeleteItem(hashing_(item));
+      }
+
+      bool DeleteItem(uint64_t item) {
+        uint64_t hash = hashing_(item);
+        BPTNode<T> *leaf = SearchLeaf(hash);
+
+        return leaf.DeleteItem(item);
+      }
 
     private:
       unsigned int degree_;

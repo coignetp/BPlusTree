@@ -8,7 +8,7 @@ namespace BPT
   template<typename T>
   class BPTNode {
     public:
-      BPTNode(const unsigned int degree) : degree_(degree), isLeaf_(true) {}
+      BPTNode(const unsigned int degree, BPTNode<T> *parent = nullptr) : parent_(parent), degree_(degree), isLeaf_(true) {}
 
       unsigned int GetDegree() const {
         return degree_;
@@ -40,8 +40,19 @@ namespace BPT
 
         return keys_[0].second;
       }
+
+      bool AddItem(T item) {
+        // TODO
+        return true;
+      }
+
+      bool DeleteItem(uint64_t item) {
+        // TODO
+        return true;
+      } 
     
     private:
+      BPTNode<T> *parent_;
       std::vector< std::pair<uint64_t, BPTNode<T>*> > children_;
       std::vector< std::pair<uint64_t, T> > keys_;
       const unsigned int degree_;
