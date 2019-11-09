@@ -11,13 +11,16 @@ namespace BPT
   template<typename T>
   class BPTree {
     public:
-      BPTree(unsigned int degree, std::function<uint64_t (const T&)> hashing) : degree_(degree), root_(degree), hashing_(hashing) {}
+      BPTree(unsigned int degree, std::function<uint64_t (const T&)> hashing) :
+        degree_(degree),
+        root_(std::make_shared<BPTNode<T>>(degree)),
+        hashing_(hashing) {}
 
       unsigned int GetDegree() const {
         return degree_;
       }
 
-      BPTNode<T> GetRootNode() const {
+      std::shared_ptr<BPTNode<T>> GetRootNode() const {
         return root_;
       }
 
@@ -29,28 +32,32 @@ namespace BPT
         return SearchLeaf(item)->GetItem(item);
       }
 
-      BPTNode<T> *SearchLeaf(const uint64_t& item) {
-        BPTNode<T> *node = &root_;
+      std::shared_ptr<BPTNode<T>> SearchLeaf(const uint64_t& item) {
+        std::shared_ptr<BPTNode<T>> node = root_;
 
         if (node == nullptr)
-          throw std::exception("Searching in an empty BPTree");
+          throw std::out_of_range("Searching in an empty BPTree");
         
-        while (!node->isLeaf()) {
-          int i = 0;
-          while (i < node.Length() && item > node[i].first)
-            i++;
-           
-           node = node[i].second;
+        while (!node->IsLeaf()) {
+          bool found = false;
+          for(int i(1) ; i < node->Length() && !found; i++) {
+            if (item <= (*node)[i].first) {
+              node = (*node)[i-1].second;
+              found = true;
+            }
+          }
+          if (!found)
+            node = (*node)[node->Length() - 1].second;
         }
 
         return node;
       }
 
-      bool AddItem(T item) {
+      void AddItem(T item) {
         uint64_t hash = hashing_(item);
-        BPTNode<T> *leaf = SearchLeaf(hash);
+        std::shared_ptr<BPTNode<T>> leaf = SearchLeaf(hash);
 
-        return leaf.AddItem(item);
+        leaf->AddItem(hash, item);
       }
 
       bool DeleteItem(T item) {
@@ -59,14 +66,14 @@ namespace BPT
 
       bool DeleteItem(uint64_t item) {
         uint64_t hash = hashing_(item);
-        BPTNode<T> *leaf = SearchLeaf(hash);
+        std::shared_ptr<BPTNode<T>> leaf = SearchLeaf(hash);
 
-        return leaf.DeleteItem(item);
+        return leaf->DeleteItem(item);
       }
 
     private:
       unsigned int degree_;
-      BPTNode<T> root_;
+      std::shared_ptr<BPTNode<T>> root_;
       std::function<uint64_t (const T&)> hashing_;
   };
 } // namespace BPT

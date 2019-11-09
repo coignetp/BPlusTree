@@ -45,3 +45,25 @@ TEST (NodeAddItem, SimpleSplit) {
   ASSERT_EQ(children[1].second->Length(), 4);
   ASSERT_EQ(children[1].second->GetThisItem(1), 4);
 }
+
+TEST (NodeAddItem, MultipleSplit) {
+  BPT::BPTNode<int> node(5);
+
+  for (int i(0) ; i < 23 ; i++) {
+    node.AddItem(i, i);
+  }
+
+  ASSERT_EQ(node.Length(), 2);
+  ASSERT_EQ(node[0].second->Length(), 4);
+  ASSERT_EQ(node[0].first, 0);
+  ASSERT_EQ(node[1].second->Length(), 4);
+  ASSERT_EQ(node[1].first, 12);
+
+  for (int i(0) ; i < 3 ; i++) {
+    ASSERT_EQ((*node[0].second)[i].second->Length(), 3);
+    ASSERT_EQ((*node[1].second)[i].second->Length(), 3);
+  }
+
+  ASSERT_EQ((*node[0].second)[2].second->GetThisItem(1), 7);
+  ASSERT_EQ((*node[1].second)[1].second->GetThisItem(2), 17);
+}

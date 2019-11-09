@@ -9,7 +9,7 @@ namespace BPT
   template<typename T>
   class BPTNode {
     public:
-      BPTNode(const unsigned int degree, BPTNode<T> *parent = nullptr) : parent_(parent), degree_(degree), isLeaf_(true) {}
+      BPTNode(const unsigned int degree, std::shared_ptr<BPTNode<T>> parent = nullptr) : parent_(parent), degree_(degree), isLeaf_(true) {}
       BPTNode(const BPTNode<T>& n) : degree_(n.GetDegree()) {
         isLeaf_ = n.IsLeaf();
         parent_ = n.GetParent();
@@ -17,7 +17,7 @@ namespace BPT
         keys_ = n.GetKeys();
       }
 
-      std::vector< std::pair<uint64_t, BPTNode<T>*> > GetChildren() const {
+      std::vector< std::pair<uint64_t, std::shared_ptr<BPTNode<T>>> > GetChildren() const {
         return children_;
       }
       
@@ -25,7 +25,7 @@ namespace BPT
         return keys_;
       }
 
-      BPTNode* GetParent() const {
+      std::shared_ptr<BPTNode> GetParent() const {
         return parent_;
       }
 
@@ -37,7 +37,7 @@ namespace BPT
         return isLeaf_;
       }
 
-      std::pair<uint64_t, BPTNode<T>*> &operator[](int index) {
+      std::pair<uint64_t, std::shared_ptr<BPTNode<T>>> &operator[](int index) {
         return children_.at(index);
       }
 
@@ -73,7 +73,6 @@ namespace BPT
 
           if (keys_.size() > degree_) {
             Split();
-            isLeaf_ = false;
           }
         } else {
           for(int i(1) ; i < children_.size() ; i++) {
@@ -87,7 +86,7 @@ namespace BPT
       }
 
       void Split() {
-        BPTNode<T> newNode(degree_, parent_ ? parent_ : this);
+        BPTNode<T> newNode(degree_, parent_ ? parent_ : std::make_shared<BPTNode<T>>(*this));
         int s = keys_.size();
 
         for (int i(s) ; i > s / 2; i--) {
@@ -96,9 +95,9 @@ namespace BPT
         }
 
         if (parent_ != nullptr) {
-          parent_->AddNode(new BPTNode<T>(newNode));
+          parent_->AddNode(std::make_shared<BPTNode<T>>(newNode));
         } else {
-          BPTNode<T> oldNode(degree_, this);
+          BPTNode<T> oldNode(degree_, std::make_shared<BPTNode<T>>(*this));
 
           while(!keys_.empty()) {
             oldNode.AddItem(keys_.back().first, keys_.back().second);
@@ -106,13 +105,20 @@ namespace BPT
           }
 
           keys_.clear();
-          children_.push_back(std::make_pair(oldNode.GetThisItem(0), new BPTNode<T>(oldNode)));
-          children_.push_back(std::make_pair(newNode.GetThisItem(0), new BPTNode<T>(newNode)));
+          children_.push_back(std::make_pair(oldNode.GetThisItem(0), std::make_shared<BPTNode<T>>(oldNode)));
+          children_.push_back(std::make_pair(newNode.GetThisItem(0), std::make_shared<BPTNode<T>>(newNode)));
+          isLeaf_ = false;
         }
       }
 
-      void AddNode(BPTNode<T> *n) {
-        children_.push_back(std::make_pair((*n)[0].first, n));
+      void AddNode(std::shared_ptr<BPTNode<T>> n) {
+        uint64_t h = 0;
+        isLeaf_ = false;
+        if (n->IsLeaf())
+          h = n->GetKeys()[0].first;
+        else
+          h = (*n)[0].first;
+        children_.push_back(std::make_pair(h, n));
         std::sort(children_.begin(), children_.end(), CompareChildren);
 
         if (children_.size() > degree_) {
@@ -121,7 +127,7 @@ namespace BPT
       }
 
       void SplitNode() {
-        BPTNode<T> newNode(degree_, parent_ ? parent_ : this);
+        BPTNode<T> newNode(degree_, parent_ ? parent_ : std::make_shared<BPTNode<T>>(*this));
         int s = children_.size();
 
         for (int i(s) ; i > s / 2; i--) {
@@ -130,9 +136,9 @@ namespace BPT
         }
 
         if (parent_ != nullptr) {
-          parent_->AddNode(new BPTNode<T>(newNode));
+          parent_->AddNode(std::make_shared<BPTNode<T> >(newNode));
         } else {
-          BPTNode<T> oldNode(degree_, this);
+          BPTNode<T> oldNode(degree_, std::make_shared<BPTNode<T>>(*this));
 
           for (int i(s/2) ; i >= 0; i--) {
             oldNode.AddNode(children_.back().second);
@@ -140,8 +146,8 @@ namespace BPT
           }
 
           children_.clear();
-          children_.push_back(std::make_pair(oldNode[0].first, new BPTNode<T>(oldNode)));
-          children_.push_back(std::make_pair(newNode[0].first, new BPTNode<T>(newNode)));
+          children_.push_back(std::make_pair(oldNode[0].first, std::make_shared<BPTNode<T> >(oldNode)));
+          children_.push_back(std::make_pair(newNode[0].first, std::make_shared<BPTNode<T> >(newNode)));
         }
       }
 
@@ -155,13 +161,13 @@ namespace BPT
         return t1.first < t2.first;
       }
 
-      static bool CompareChildren(std::pair<uint64_t, BPTNode<T>*> t1, std::pair<uint64_t, BPTNode<T> *> t2) {
+      static bool CompareChildren(std::pair<uint64_t, std::shared_ptr<BPTNode<T>> > t1, std::pair<uint64_t, std::shared_ptr<BPTNode<T>> > t2) {
         return t1.first < t2.first;
       }
 
     private:
-      BPTNode<T> *parent_;
-      std::vector< std::pair<uint64_t, BPTNode<T>*> > children_;
+      std::shared_ptr<BPTNode<T>> parent_;
+      std::vector< std::pair<uint64_t, std::shared_ptr<BPTNode<T>> > > children_;
       std::vector< std::pair<uint64_t, T> > keys_;
       const unsigned int degree_;
       bool isLeaf_;
