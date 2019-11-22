@@ -34,35 +34,37 @@ namespace BPT
       }
 
       T& SearchItem(const uint64_t& item) {
-        return SearchLeaf(item)->GetItem(item);
+        return root_->Search(item);
+        // return SearchLeaf(item)->GetItem(item);
       }
 
-      BPTNode<T>* SearchLeaf(const uint64_t& item) {
-        BPTNode<T>* node = root_;
+      // BPTNode<T>* SearchLeaf(const uint64_t& item) {
+      //   BPTNode<T>* node = root_;
 
-        if (node == nullptr)
-          throw std::out_of_range("Searching in an empty BPTree");
+      //   if (node == nullptr)
+      //     throw std::out_of_range("Searching in an empty BPTree");
         
-        while (!node->IsLeaf()) {
-          bool found = false;
-          for(int i(1) ; i < node->Length() && !found; i++) {
-            if (item < (*node)[i].first) {
-              node = (*node)[i-1].second;
-              found = true;
-            }
-          }
-          if (!found)
-            node = (*node)[node->Length() - 1].second;
-        }
+      //   while (!node->IsLeaf()) {
+      //     bool found = false;
+      //     for(int i(1) ; i < node->Length() && !found; i++) {
+      //       if (item < std::next(node->GetChildren().begin(), i)->first) {
+      //         node = node->GetThisChild(i - 1);
+      //         found = true;
+      //       }
+      //     }
+      //     if (!found)
+      //       node = node->GetThisChild(node->Length() - 1);
+      //   }
 
-        return node;
-      }
+      //   return node;
+      // }
 
       void AddItem(T item) {
         uint64_t hash = hashing_(item);
-        BPTNode<T>* leaf = SearchLeaf(hash);
+        // BPTNode<T>* leaf = SearchLeaf(hash);
 
-        leaf->AddItem(hash, item);
+        // leaf->AddItem(hash, item);
+        return root_->AddItem(hash, item);
       }
 
       bool DeleteItem(T item) {
@@ -71,9 +73,10 @@ namespace BPT
 
       bool DeleteItem(uint64_t item) {
         uint64_t hash = hashing_(item);
-        BPTNode<T>* leaf = SearchLeaf(hash);
+        // BPTNode<T>* leaf = SearchLeaf(hash);
 
-        return leaf->DeleteItem(item);
+        // return leaf->DeleteItem(item);
+        return root_->DeleteItem(item);
       }
 
     private:

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <algorithm>
+#include <map>
 #include <memory>
-#include <vector>
 
 namespace BPT
 {
@@ -23,11 +23,11 @@ namespace BPT
         }
       }
 
-      std::vector< std::pair<uint64_t, BPTNode<T>*> > GetChildren() const {
+      std::map<uint64_t, BPTNode<T>* > GetChildren() const {
         return children_;
       }
       
-      std::vector< std::pair<uint64_t, T> > GetKeys() const {
+      std::map<uint64_t, T> GetKeys() const {
         return keys_;
       }
 
@@ -47,10 +47,6 @@ namespace BPT
         return isLeaf_;
       }
 
-      std::pair<uint64_t, BPTNode<T>*> &operator[](int index) {
-        return children_.at(index);
-      }
-
       int Length() const {
         if (isLeaf_)
           return keys_.size();
@@ -61,31 +57,36 @@ namespace BPT
         if (!isLeaf_)
           throw std::logic_error("Not a leaf node");
         
-        for (int i(0) ; i < keys_.size() ; i++) {
-          if (hash == keys_[i].first) {
-            return keys_[i].second;
-          }
-        }
+        auto it(keys_.find(hash));
 
-        throw std::out_of_range("Item not found");
+        if (it == keys_.end())
+          throw std::out_of_range("Item not found");
 
-        return keys_[0].second;
+        return it->second;
       }
 
       T& GetThisItem(const int index) {
-        return keys_.at(index).second;
+        if (index >= keys_.size())
+          throw std::out_of_range("Index out of range");
+        return std::next(keys_.begin(), index)->second;
+      }
+
+      BPTNode<T>* GetThisChild(const int index) {
+        if (index >= children_.size())
+          throw std::out_of_range("Index out of range");
+        return std::next(children_.begin(), index)->second;
       }
 
       void AddItem(uint64_t hash, T item) {
         if (isLeaf_) {
-          keys_.push_back(std::make_pair(hash, item));
-          uint64_t firstHash = keys_.front().first;
+          uint64_t firstHash = keys_.begin()->first;
+          keys_[hash] = item;
 
           if (hash < firstHash && parent_ != nullptr) {
             parent_->UpdateKeysFromChild(firstHash, hash);
           }
 
-          std::sort(keys_.begin(), keys_.end(), CompareKeys);
+          // std::sort(keys_.begin(), keys_.end(), CompareKeys);
 
           if (keys_.size() >= degree_) {
             Split();
@@ -97,13 +98,19 @@ namespace BPT
           }
 
         } else {
-          for(int i(1) ; i < children_.size() ; i++) {
-            if (hash < children_[i].first) {
-              children_[i-1].second->AddItem(hash, item);
+          // for(int i(1) ; i < children_.size() ; i++) {
+          //   if (hash < children_[i].first) {
+          //     children_[i-1].second->AddItem(hash, item);
+          //     return;
+          //   }
+          // }
+          for (auto it(std::next(children_.begin())) ; it != children_.end() ; ++it) {
+            if (hash < it->first) {
+              std::prev(it)->second->AddItem(hash, item);
               return;
             }
           }
-          children_.back().second->AddItem(hash, item);
+          children_.rbegin()->second->AddItem(hash, item);
         }
       }
 
@@ -111,9 +118,13 @@ namespace BPT
         BPTNode<T> newNode(degree_, parent_ ? parent_ : this);
         int s = keys_.size();
 
-        for (int i(s) ; i > s / 2; i--) {
-          newNode.AddItem(keys_.back().first, keys_.back().second);
-          keys_.pop_back();
+        // for (int i(s) ; i > s / 2; i--) {
+        //   newNode.AddItem(keys_.back().first, keys_.back().second);
+        //   keys_.pop_back();
+        // }
+        while (keys_.size() > s / 2) {
+          newNode.AddItem(keys_.rbegin()->first, keys_.rbegin()->second);
+          keys_.erase(keys_.rbegin()->first);
         }
 
         if (parent_ != nullptr) {
@@ -122,13 +133,15 @@ namespace BPT
           BPTNode<T> oldNode(degree_, newNode.GetParent());
 
           while(!keys_.empty()) {
-            oldNode.AddItem(keys_.back().first, keys_.back().second);
-            keys_.pop_back();
+            // oldNode.AddItem(keys_.back().first, keys_.back().second);
+            oldNode.AddItem(keys_.rbegin()->first, keys_.rbegin()->second);
+            // keys_.pop_back();
+            keys_.erase(keys_.rbegin()->first);
           }
 
           keys_.clear();
-          children_.push_back(std::make_pair(oldNode.GetThisItem(0), new BPTNode<T>(oldNode)));
-          children_.push_back(std::make_pair(newNode.GetThisItem(0), new BPTNode<T>(newNode)));
+          children_[oldNode.GetThisItem(0)] = new BPTNode<T>(oldNode);
+          children_[newNode.GetThisItem(0)] = new BPTNode<T>(newNode);
         }
       }
 
@@ -136,11 +149,11 @@ namespace BPT
         uint64_t h = 0;
         isLeaf_ = false;
         if (n->IsLeaf())
-          h = n->GetKeys()[0].first;
+          h = n->GetKeys().begin()->first;
         else
-          h = (*n)[0].first;
-        children_.push_back(std::make_pair(h, n));
-        std::sort(children_.begin(), children_.end(), CompareChildren);
+          h = n->GetChildren().begin()->first;
+        children_[h] = n;
+        // std::sort(children_.begin(), children_.end(), CompareChildren);
 
         if (children_.size() > degree_) {
           SplitNode();
@@ -153,16 +166,21 @@ namespace BPT
           if (children_.empty()) {
             p = this;
           } else {
-            p = children_[0].second->GetParent();
+            p = children_.begin()->second->GetParent();
           }
         }
         BPTNode<T>* newNode = new BPTNode<T> (degree_, p);
         int s = children_.size();
 
-        for (int i(s) ; i > s / 2; i--) {
-          children_.back().second->SetParent(newNode);
-          newNode->AddNode(children_.back().second);
-          children_.pop_back();
+        // for (int i(s) ; i > s / 2; i--) {
+        //   children_.back().second->SetParent(newNode);
+        //   newNode->AddNode(children_.back().second);
+        //   children_.pop_back();
+        // }
+        while (children_.size() > s / 2) {
+          children_.rbegin()->second->SetParent(newNode);
+          newNode->AddNode(children_.rbegin()->second);
+          children_.erase(children_.rbegin()->first);
         }
 
         if (parent_ != nullptr) {
@@ -171,19 +189,21 @@ namespace BPT
           BPTNode<T>* oldNode = new BPTNode<T>(degree_, newNode->GetParent());
 
           while(!children_.empty()) {
-            children_.back().second->SetParent(oldNode);
-            oldNode->AddNode(children_.back().second);
-            children_.pop_back();
+            // children_.back().second->SetParent(oldNode);
+            // oldNode->AddNode(children_.back().second);
+            // children_.pop_back();
+            children_.rbegin()->second->SetParent(oldNode);
+            oldNode->AddNode(children_.rbegin()->second);
+            children_.erase(children_.rbegin()->first);
           }
 
           children_.clear();
-          children_.push_back(std::make_pair((*oldNode)[0].first, oldNode));
-          children_.push_back(std::make_pair((*newNode)[0].first, newNode));
+          children_[oldNode->GetChildren().begin()->first] = oldNode;
+          children_[newNode->GetChildren().begin()->first] = newNode;
         }
       }
 
       bool DeleteItem(const uint64_t& item) {
-        uint64_t id(keys_.front().first);
         bool ret = false;
         if (isLeaf_) {
           for (auto it(keys_.begin()) ; it != keys_.end() ; ++it) {
@@ -193,30 +213,44 @@ namespace BPT
             }
           }
         } else {
-          for(int i(1) ; i < children_.size() ; i++) {
-            if (item < children_[i].first) {
-              ret = children_[i-1].second->DeleteItem(item);
+          // for(int i(1) ; i < children_.size() ; i++) {
+          //   if (item < children_[i].first) {
+          //     ret = children_[i-1].second->DeleteItem(item);
+
+          //     if (
+          //         (children_[i-1].second->IsLeaf()
+          //         && !children_[i-1].second->HasEnoughKey()) ||
+          //         (!children_[i-1].second->IsLeaf()
+          //         && !children_[i-1].second->HasEnoughChildren())
+          //       ) {
+          //         RemoveChild(children_[i-1].first);
+          //     }
+
+          //     return ret;
+          //   }
+          // }
+          for (auto it(std::next(children_.begin())) ; it != children_.end() ; ++it) {
+            if (item < it->first) {
+              it = std::prev(it);
+              ret = it->second->DeleteItem(item);
 
               if (
-                  (children_[i-1].second->IsLeaf()
-                  && !children_[i-1].second->HasEnoughKey()) ||
-                  (!children_[i-1].second->IsLeaf()
-                  && !children_[i-1].second->HasEnoughChildren())
-                ) {
-                  RemoveChild(children_[i-1].first);
+                  (it->second->IsLeaf() && !it->second->HasEnoughKey()) ||
+                  (!it->second->IsLeaf() && !it->second->HasEnoughChildren())
+              ) {
+                RemoveChild(it->first);
               }
 
               return ret;
             }
           }
-          ret = children_.back().second->DeleteItem(item);
+          ret = children_.rbegin()->second->DeleteItem(item);
         }
 
         return ret;
       }
 
       bool RemoveChild(const uint64_t& hash, const bool deleteChildrenItems = false) {
-        uint64_t id(children_.front().first);
         for (auto it(children_.begin()) ; it != children_.end() ; it++) {
           if (it->first == hash) {
             BPTNode<T>* child = it->second;
@@ -252,6 +286,26 @@ namespace BPT
         return (!isLeaf_ && children_.size() >= degree_ / 2) || parent_ == nullptr;
       }
 
+      T& Search(const uint64_t &item) {
+        if (isLeaf_) {
+          auto it(keys_.find(item));
+
+          if (it == keys_.end()) {
+            throw std::out_of_range("Item not found");
+          }
+
+          return it->second;
+        }
+
+        for (auto child(std::next(children_.begin())) ; child != children_.end() ; ++child) {
+          if (item < child->first) {
+            return std::prev(child)->second->Search(item);
+          }
+        }
+
+        return children_.rbegin()->second->Search(item);
+      }
+
     public:
       static bool CompareKeys(std::pair<uint64_t, T> t1, std::pair<uint64_t, T> t2) {
         return t1.first < t2.first;
@@ -264,14 +318,25 @@ namespace BPT
     private:
       bool UpdateKeysFromChild(const uint64_t& oldKey, const uint64_t newKey) {
         if (!isLeaf_) {
-          for (int i(0) ; i < children_.size() ; i++) {
-            if (children_[i].first == oldKey) {
-              children_[i].first = newKey;
-              if (i == 0 && parent_ != nullptr) {
-                return parent_->UpdateKeysFromChild(oldKey, newKey);
-              }
-              return true;
+          // for (int i(0) ; i < children_.size() ; i++) {
+          //   if (children_[i].first == oldKey) {
+          //     children_[i].first = newKey;
+          //     if (i == 0 && parent_ != nullptr) {
+          //       return parent_->UpdateKeysFromChild(oldKey, newKey);
+          //     }
+          //     return true;
+          //   }
+          // }
+          auto it(children_.find(oldKey));
+          if (it != children_.end()) {
+            children_[newKey] = it->second;
+
+            if (it == children_.begin() && parent_ != nullptr) {
+              children_.erase(it);
+              return parent_->UpdateKeysFromChild(oldKey, newKey);
             }
+            children_.erase(it);
+            return true;
           }
         }
         return false;
@@ -279,8 +344,8 @@ namespace BPT
 
     private:
       BPTNode<T>* parent_;
-      std::vector< std::pair<uint64_t, BPTNode<T>* > > children_;
-      std::vector< std::pair<uint64_t, T> > keys_;
+      std::map<uint64_t, BPTNode<T>* > children_; // stored in increasing order by default
+      std::map<uint64_t, T> keys_;
       const unsigned int degree_;
       bool isLeaf_;
   };
