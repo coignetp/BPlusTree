@@ -23,3 +23,13 @@ set(Tests_Srcs
 
     PARENT_SCOPE
 )
+
+# Benchmark sources
+set(Benchmark_Srcs
+    ${Root_Srcs}
+    ${Srcdir}/bptree_benchmark.cpp
+    ${Srcdir}/bptnode_benchmark.cpp
+    ${Srcdir}/main_benchmark.cpp
+
+    PARENT_SCOPE
+)

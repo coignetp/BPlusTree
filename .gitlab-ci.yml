@@ -31,3 +31,13 @@ test:
   artifacts:
     paths:
       - build/
+
+bench:
+  stage: benchmark
+  script:
+    - ./build/bptree_benchmark --benchmark_out_format=json --benchmark_out=bench.json
+  dependencies:
+    - build
+  artifacts:
+    paths:
+      - build/

@@ -3,6 +3,7 @@
 #include "bptnode.hpp"
 
 #include <exception>
+#include <functional>
 
 // Everything will be moved to a single header file at the end of the project.
 // It makes it easier to use it as a dependency.

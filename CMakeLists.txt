@@ -15,11 +15,19 @@ add_subdirectory(src)
 add_subdirectory(third_party)
 
 # Create the test executable
-add_executable(
+add_executable(    
     ${EXECUTABLE_NAME}_test
 
     ${Tests_Srcs}
 )
+
+add_executable(    
+    ${EXECUTABLE_NAME}_benchmark
+
+    ${Benchmark_Srcs}
+)
+
+target_link_libraries("${EXECUTABLE_NAME}_benchmark" PUBLIC benchmark)
 target_link_libraries(${EXECUTABLE_NAME}_test PUBLIC gtest)
 
 
