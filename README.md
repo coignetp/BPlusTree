@@ -1,6 +1,7 @@
+![](https://github.com/actions/coignetp/BPlusTree/workflows/.github/workflows/ccpp.yml/badge.svg)
+
 # Description
-This is a template for a C++ project with CMake, gtest/gmock and a .gitlab.yml.  
-There is a data directory that is taken care of by CMake.
+This is a C++ project that implements a BPlusTree.
 
 # Installation
 ## Prerequisites
@@ -14,4 +15,4 @@ cd build
 cmake ..
 cmake --build .
 ```
-There are 2 output executable, one for the test and one for the project.
+There are 2 output executable, one for the test and one for the benchmark.
