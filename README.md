@@ -1,4 +1,4 @@
-![](https://github.com/actions/coignetp/BPlusTree/workflows/.github/workflows/ccpp.yml/badge.svg)
+![Github Actions](https://github.com/coignetp/BPlusTree/.github/workflows/ccpp.yml/badge.svg)
 
 # Description
 This is a C++ project that implements a BPlusTree.
