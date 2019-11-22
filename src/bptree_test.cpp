@@ -27,3 +27,18 @@ TEST (TreeAddItemTest, Complete) {
   for (int i(0) ; i < 100 ; i++)
     ASSERT_EQ(bpt.SearchItem((uint64_t)i), i);
 }
+
+TEST (TreeDeleteItemTest, Complete) {
+  BPT::BPTree<int> bpt(5, hashFunc);
+
+  for (int i(0) ; i < 100 ; i++)
+    bpt.AddItem(i);
+
+  for (int i(0) ; i < 100 ; i++)
+    ASSERT_EQ(bpt.SearchItem((uint64_t)i), i);
+
+  for (int i(30) ; i < 80 ; i++) {
+    ASSERT_TRUE(bpt.DeleteItem(i));
+    ASSERT_FALSE(bpt.DeleteItem(i));
+  }
+}
