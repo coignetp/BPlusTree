@@ -27,7 +27,7 @@ add_executable(
     ${Benchmark_Srcs}
 )
 
-target_link_libraries("${EXECUTABLE_NAME}_benchmark" benchmark)
+target_link_libraries("${EXECUTABLE_NAME}_benchmark" PUBLIC benchmark)
 target_link_libraries(${EXECUTABLE_NAME}_test PUBLIC gtest)
 
 
