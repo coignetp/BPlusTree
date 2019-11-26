@@ -46,13 +46,13 @@ namespace BPT
         while (!node->IsLeaf()) {
           bool found = false;
           for(int i(1) ; i < node->Length() && !found; i++) {
-            if (item < (*node)[i].first) {
-              node = (*node)[i-1].second;
+            if (item < node->GetChildHash(i)) {
+              node = node->GetThisChild(i-1);
               found = true;
             }
           }
           if (!found)
-            node = (*node)[node->Length() - 1].second;
+            node = node->GetThisChild(node->Length() - 1);
         }
 
         return node;

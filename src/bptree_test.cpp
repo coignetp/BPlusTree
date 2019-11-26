@@ -37,8 +37,12 @@ TEST (TreeDeleteItemTest, Complete) {
   for (int i(0) ; i < 100 ; i++)
     ASSERT_EQ(bpt.SearchItem((uint64_t)i), i);
 
+  try {
   for (int i(30) ; i < 80 ; i++) {
     ASSERT_TRUE(bpt.DeleteItem(i));
     ASSERT_FALSE(bpt.DeleteItem(i));
+  }
+  } catch (const std::exception &e) {
+    std::cout << e.what();
   }
 }

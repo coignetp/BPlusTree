@@ -47,10 +47,6 @@ namespace BPT
         return isLeaf_;
       }
 
-      std::pair<uint64_t, BPTNode<T>*> &operator[](int index) {
-        return children_.at(index);
-      }
-
       int Length() const {
         if (isLeaf_)
           return keys_.size();
@@ -74,6 +70,33 @@ namespace BPT
 
       T& GetThisItem(const int index) {
         return keys_.at(index).second;
+      }
+
+      uint64_t GetKeyHash(const int index) {
+        return keys_.at(index).first;
+      }
+
+      BPTNode<T>* GetChild(const uint64_t& hash) {
+        if (!isLeaf_)
+          throw std::logic_error("Not a leaf node");
+        
+        for (int i(0) ; i < children_.size() ; i++) {
+          if (hash == children_[i].first) {
+            return children_[i].second;
+          }
+        }
+
+        throw std::out_of_range("Children not found");
+
+        return children_[0].second;
+      }
+
+      BPTNode<T>* GetThisChild(const int index) {
+        return children_.at(index).second;
+      }
+
+      uint64_t GetChildHash(const int index) {
+        return children_.at(index).first;
       }
 
       void AddItem(uint64_t hash, T item) {
@@ -138,7 +161,7 @@ namespace BPT
         if (n->IsLeaf())
           h = n->GetKeys()[0].first;
         else
-          h = (*n)[0].first;
+          h = n->GetChildHash(0);
         children_.push_back(std::make_pair(h, n));
         std::sort(children_.begin(), children_.end(), CompareChildren);
 
@@ -177,8 +200,8 @@ namespace BPT
           }
 
           children_.clear();
-          children_.push_back(std::make_pair((*oldNode)[0].first, oldNode));
-          children_.push_back(std::make_pair((*newNode)[0].first, newNode));
+          children_.push_back(std::make_pair(oldNode->GetChildHash(0), oldNode));
+          children_.push_back(std::make_pair(newNode->GetChildHash(0), newNode));
         }
       }
 

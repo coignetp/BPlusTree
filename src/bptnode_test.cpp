@@ -30,9 +30,9 @@ TEST (NodeAddItem, SimpleSplit) {
   }
 
   ASSERT_EQ(node.Length(), 2);
-  ASSERT_EQ(node[0].second->IsLeaf(), true);
-  ASSERT_EQ(node[1].second->IsLeaf(), true);
-  ASSERT_THROW(node[2], std::out_of_range);
+  ASSERT_EQ(node.GetThisChild(0)->IsLeaf(), true);
+  ASSERT_EQ(node.GetThisChild(1)->IsLeaf(), true);
+  ASSERT_THROW(node.GetThisChild(2), std::out_of_range);
 
   ASSERT_EQ(node.IsLeaf(), false);
 
@@ -54,20 +54,20 @@ TEST (NodeAddItem, MultipleSplit) {
   }
 
   ASSERT_EQ(node.Length(), 2);
-  ASSERT_EQ(node[0].second->Length(), 3);
-  ASSERT_EQ(node[0].first, 0);
-  ASSERT_EQ(node[1].second->Length(), 5);
-  ASSERT_EQ(node[1].first, 6);
+  ASSERT_EQ(node.GetThisChild(0)->Length(), 3);
+  ASSERT_EQ(node.GetChildHash(0), 0);
+  ASSERT_EQ(node.GetThisChild(1)->Length(), 5);
+  ASSERT_EQ(node.GetChildHash(1), 6);
 
   for (int i(0) ; i < 3 ; i++) {
-    ASSERT_EQ((*node[0].second)[i].second->Length(), 2);
-    ASSERT_EQ((*node[1].second)[i].second->Length(), 2);
+    ASSERT_EQ(node.GetThisChild(0)->GetThisChild(i)->Length(), 2);
+    ASSERT_EQ(node.GetThisChild(1)->GetThisChild(i)->Length(), 2);
   }
-  ASSERT_EQ((*node[1].second)[3].second->Length(), 2);
-  ASSERT_EQ((*node[1].second)[4].second->Length(), 4);
+  ASSERT_EQ(node.GetThisChild(1)->GetThisChild(3)->Length(), 2);
+  ASSERT_EQ(node.GetThisChild(1)->GetThisChild(4)->Length(), 4);
 
-  ASSERT_EQ((*node[0].second)[2].second->GetThisItem(1), 5);
-  ASSERT_EQ((*node[1].second)[1].second->GetThisItem(1), 9);
+  ASSERT_EQ(node.GetThisChild(0)->GetThisChild(2)->GetThisItem(1), 5);
+  ASSERT_EQ(node.GetThisChild(1)->GetThisChild(1)->GetThisItem(1), 9);
 }
 
 TEST (NodeDeleteItem, SimpleRootDelete) {
@@ -91,12 +91,12 @@ TEST (NodeDeleteItem, SimpleNodeDelete) {
     node.AddItem(i, i);
   }
 
-  ASSERT_EQ(node[3].second->GetThisItem(2), 8);
+  ASSERT_EQ(node.GetThisChild(3)->GetThisItem(2), 8);
 
   ASSERT_TRUE(node.DeleteItem(8));
   ASSERT_FALSE(node.DeleteItem(8));
 
-  ASSERT_THROW(node[3].second->GetThisItem(2), std::out_of_range);
+  ASSERT_THROW(node.GetThisChild(3)->GetThisItem(2), std::out_of_range);
 }
 
 TEST (NodeDeleteItem, NodeDelete) {
@@ -106,15 +106,15 @@ TEST (NodeDeleteItem, NodeDelete) {
     node.AddItem(i, i);
   }
 
-  ASSERT_EQ(node[0].second->GetThisItem(0), 0);
+  ASSERT_EQ(node.GetThisChild(0)->GetThisItem(0), 0);
 
   ASSERT_TRUE(node.DeleteItem(0));
   ASSERT_FALSE(node.DeleteItem(0));
 
-  ASSERT_EQ(node[0].second->Length(), 3);
-  ASSERT_EQ(node[0].first, 1);
+  ASSERT_EQ(node.GetThisChild(0)->Length(), 3);
+  ASSERT_EQ(node.GetChildHash(0), 1);
 
-  ASSERT_EQ(node[0].second->GetThisItem(0), 1);
+  ASSERT_EQ(node.GetThisChild(0)->GetThisItem(0), 1);
 }
 
 TEST (NodeDeleteNode, SimpleDelete) {
@@ -124,10 +124,10 @@ TEST (NodeDeleteNode, SimpleDelete) {
     node.AddItem(i, i);
   }
 
-  ASSERT_EQ(node[0].second->GetThisItem(0), 0);
+  ASSERT_EQ(node.GetThisChild(0)->GetThisItem(0), 0);
 
   ASSERT_TRUE(node.RemoveChild(0, true));
   ASSERT_FALSE(node.RemoveChild(0));
 
-  ASSERT_EQ(node[0].second->GetThisItem(0), 2);
+  ASSERT_EQ(node.GetThisChild(0)->GetThisItem(0), 2);
 }
