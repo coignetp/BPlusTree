@@ -161,7 +161,7 @@ namespace BPT
         if (n->IsLeaf())
           h = n->GetKeys()[0].first;
         else
-          h = n->GetChildHash(0); //(*n)[0].first;
+          h = n->GetChildHash(0);
         children_.push_back(std::make_pair(h, n));
         std::sort(children_.begin(), children_.end(), CompareChildren);
 
@@ -200,8 +200,8 @@ namespace BPT
           }
 
           children_.clear();
-          children_.push_back(std::make_pair(oldNode->GetChildHash(0), oldNode)); //(*oldNode)[0].first, oldNode));
-          children_.push_back(std::make_pair(newNode->GetChildHash(0), newNode)); //(*newNode)[0].first, newNode));
+          children_.push_back(std::make_pair(oldNode->GetChildHash(0), oldNode));
+          children_.push_back(std::make_pair(newNode->GetChildHash(0), newNode));
         }
       }
 
