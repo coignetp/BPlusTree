@@ -291,6 +291,19 @@ namespace BPT
         return (!isLeaf_ && children_.size() >= degree_ / 2) || parent_ == nullptr;
       }
 
+      void DeepCopyFrom(BPTNode<T> *n) {
+        if (n->IsLeaf()) {
+          for (std::pair<uint64_t, T> k : n->GetKeys()) {
+            AddItem(k.first, k.second);
+          }
+        } else {
+          for (std::pair<uint64_t, BPTNode<T>*> c : n->GetChildren()) {
+            children_.push_back(std::make_pair(c.first, new BPTNode<T>(degree_, this)));
+            children_.back().second->DeepCopyFrom(c.second);
+          }
+        }
+      }
+
     public:
       static bool CompareKeys(const std::pair<uint64_t, T>& t1, const std::pair<uint64_t, T>& t2) {
         return t1.first < t2.first;

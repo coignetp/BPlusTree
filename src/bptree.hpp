@@ -16,6 +16,11 @@ namespace BPT
         degree_(degree),
         root_(new BPTNode<T>(degree)),
         hashing_(hashing) {}
+      
+      BPTree(const BPTree<T>& bpt) :
+        degree_(bpt.GetDegree()),
+        root_(bpt.GetRootNode()),
+        hashing_(bpt.GetHashFunction()) {}
 
       ~BPTree() {
         delete root_;
@@ -27,6 +32,19 @@ namespace BPT
 
       BPTNode<T>* GetRootNode() const {
         return root_;
+      }
+
+      std::function<uint64_t (const T&)> GetHashFunction() const {
+        return hashing_;
+      }
+
+      void DeepCopyFrom(BPTree<T> *bpt) {
+        degree_ = bpt->GetDegree();
+        hashing_ = bpt->GetHashFunction();
+        delete root_;
+
+        root_ = new BPTNode<T>(degree_);
+        root_->DeepCopyFrom(bpt->GetRootNode());
       }
 
       T& SearchItem(const T& item) {
@@ -76,9 +94,18 @@ namespace BPT
         return leaf->DeleteItem(item);
       }
 
+      BPTree<T>& operator=(const BPTree<T>& other) {
+        degree_ = other.GetDegree();
+        root_ = other.GetRootNode();
+        hashing_ = other.GetHashFunction();
+
+        return *this;
+      }
+
     private:
       unsigned int degree_;
       BPTNode<T>* root_;
       std::function<uint64_t (const T&)> hashing_;
   };
+
 } // namespace BPT
