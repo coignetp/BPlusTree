@@ -113,14 +113,12 @@ namespace BPT
 
       void AddItem(uint64_t hash, T item) {
         if (isLeaf_) {
-          keys_.push_back(std::make_pair(hash, item));
           uint64_t firstHash = keys_.front().first;
+          SortedInsertKeys(hash, item);
 
           if (hash < firstHash && parent_ != nullptr) {
             parent_->UpdateKeysFromChild(firstHash, hash);
           }
-
-          keys_.sort(CompareKeys);
 
           if (keys_.size() >= degree_) {
             Split();
@@ -175,8 +173,8 @@ namespace BPT
           h = n->GetKeyHash(0);
         else
           h = n->GetChildHash(0);
-        children_.push_back(std::make_pair(h, n));
-        children_.sort(CompareChildren);
+
+        SortedInsertChildren(h, n);
 
         if (children_.size() > degree_) {
           SplitNode();
@@ -320,6 +318,26 @@ namespace BPT
           }
         }
         return false;
+      }
+
+      void SortedInsertKeys(uint64_t hash, T item) {
+        for (auto it(keys_.begin()) ; it != keys_.end() ; ++it) {
+          if (hash < it->first) {
+            keys_.insert(it, std::make_pair(hash, item));
+            return;
+          }
+        }
+        keys_.push_back(std::make_pair(hash, item));
+      }
+
+      void SortedInsertChildren(uint64_t hash, BPTNode<T> *n) {
+        for (auto it(children_.begin()) ; it != children_.end() ; ++it) {
+          if (hash < it->first) {
+            children_.insert(it, std::make_pair(hash, n));
+            return;
+          }
+        }
+        children_.push_back(std::make_pair(hash, n));
       }
 
     private:
