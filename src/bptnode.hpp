@@ -121,7 +121,6 @@ namespace BPT
           }
 
           keys_.sort(CompareKeys);
-          // keys_.sort();
 
           if (keys_.size() >= degree_) {
             Split();
@@ -311,14 +310,8 @@ namespace BPT
               bool updateParent = (parent_ != nullptr && it == children_.begin());
 
               BPTNode<T>* node = it->second;
-              it = children_.erase(it);
 
-              if (it == children_.begin()) {
-                children_.push_front(std::make_pair(newKey, node));
-              } else {
-                children_.insert(std::prev(it), std::make_pair(newKey, node));
-              }
-
+              it->first = newKey;
               if (updateParent) {
                 return parent_->UpdateKeysFromChild(oldKey, newKey);
               }
