@@ -36,14 +36,12 @@ TEST (NodeAddItem, SimpleSplit) {
 
   ASSERT_EQ(node.IsLeaf(), false);
 
-  auto children = node.GetChildren();
-
-  ASSERT_EQ(children[0].first, 0);
-  ASSERT_EQ(children[0].second->Length(), 2);
-  ASSERT_EQ(children[0].second->GetThisItem(1), 1);
-  ASSERT_EQ(children[1].first, 2);
-  ASSERT_EQ(children[1].second->Length(), 4);
-  ASSERT_EQ(children[1].second->GetThisItem(1), 3);
+  ASSERT_EQ(node.GetChildHash(0), 0);
+  ASSERT_EQ(node.GetThisChild(0)->Length(), 2);
+  ASSERT_EQ(node.GetThisChild(0)->GetThisItem(1), 1);
+  ASSERT_EQ(node.GetChildHash(1), 2);
+  ASSERT_EQ(node.GetThisChild(1)->Length(), 4);
+  ASSERT_EQ(node.GetThisChild(1)->GetThisItem(1), 3);
 }
 
 TEST (NodeAddItem, MultipleSplit) {

@@ -13,10 +13,15 @@ static void BM_TreeInsertion(benchmark::State& state) {
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_int_distribution<> dis(-1e6, 1e6);
+  double iterations(0);
 
   for (auto _ : state) {
-    bpt.AddItem(dis(gen));
+    int r = dis(gen);
+    bpt.AddItem(r);
+    iterations++;
   }
+
+  state.counters["Insertion/s"] = benchmark::Counter(iterations, benchmark::Counter::kIsRate);
 }
 
 // Register the function as a benchmark
