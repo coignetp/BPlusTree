@@ -7,9 +7,7 @@
 #include <random>
 #include <vector>
 
-uint64_t hashFunc(int a) {
-  return a;
-}
+uint64_t hashFunc(int a) { return a; }
 
 std::vector<int> dataset(5e5);
 std::map<int, std::shared_ptr<BPT::BPTree<int>>> samples;
@@ -22,17 +20,15 @@ static void InitiateDatasetAndSamples() {
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(-maxItem/2, maxItem/2);
+    std::uniform_int_distribution<> dis(-maxItem / 2, maxItem / 2);
 
-    std::generate(dataset.begin(), dataset.end(), [&] {
-      return dis(gen);
-    });
+    std::generate(dataset.begin(), dataset.end(), [&] { return dis(gen); });
 
     // Samples
     for (int degree : degrees) {
       std::cout << "Generating BPT deg " << degree << std::endl;
       samples[degree] = std::make_shared<BPT::BPTree<int>>(degree, hashFunc);
-      for (int i(0) ; i < maxItem ; i++) {
+      for (int i(0); i < maxItem; i++) {
         samples[degree]->AddItem(dataset[i]);
       }
     }
@@ -51,7 +47,8 @@ static void BM_TreeInsertion(benchmark::State& state) {
     iterations++;
   }
 
-  state.counters["Insertion/s"] = benchmark::Counter(iterations, benchmark::Counter::kIsRate);
+  state.counters["Insertion/s"] =
+      benchmark::Counter(iterations, benchmark::Counter::kIsRate);
 }
 
 static void BM_TreeSearch(benchmark::State& state) {
@@ -66,12 +63,13 @@ static void BM_TreeSearch(benchmark::State& state) {
     try {
       iterations++;
       bpt.SearchItem(dataset[iterations]);
-    } catch (std::out_of_range &_) {
+    } catch (std::out_of_range& _) {
       missed++;
     }
   }
 
-  state.counters["Search/s"] = benchmark::Counter(iterations, benchmark::Counter::kIsRate);
+  state.counters["Search/s"] =
+      benchmark::Counter(iterations, benchmark::Counter::kIsRate);
   state.counters["Missed %"] = benchmark::Counter(100 * missed / iterations);
 }
 
@@ -87,7 +85,8 @@ static void BM_TreeDelete(benchmark::State& state) {
     bpt.DeleteItem(dataset[iterations]);
   }
 
-  state.counters["Deletion/s"] = benchmark::Counter(iterations, benchmark::Counter::kIsRate);
+  state.counters["Deletion/s"] =
+      benchmark::Counter(iterations, benchmark::Counter::kIsRate);
 }
 
 // Register the function as a benchmark
