@@ -73,13 +73,13 @@ namespace BPT
       }
 
       T& GetThisItem(const int index) {
-        if (index >= keys_.size())
+        if ((unsigned)index >= keys_.size())
           throw std::out_of_range("Index out of range");
         return std::next(keys_.begin(), index)->second;
       }
 
       uint64_t GetKeyHash(const int index) {
-        if (index >= keys_.size())
+        if ((unsigned)index >= keys_.size())
           throw std::out_of_range("Index out of range");
         return std::next(keys_.begin(), index)->first;
       }
@@ -100,13 +100,13 @@ namespace BPT
       }
 
       BPTNode<T>* GetThisChild(const int index) {
-        if (index >= children_.size())
+        if ((unsigned)index >= children_.size())
           throw std::out_of_range("Index out of range");
         return std::next(children_.begin(), index)->second;
       }
 
       uint64_t GetChildHash(const int index) {
-        if (index >= children_.size())
+        if ((unsigned)index >= children_.size())
           throw std::out_of_range("Index out of range");
         return std::next(children_.begin(), index)->first;
       }
@@ -255,7 +255,6 @@ namespace BPT
       }
 
       bool RemoveChild(const uint64_t& hash, const bool deleteChildrenItems = false) {
-        uint64_t id(children_.front().first);
         for (auto it(children_.begin()) ; it != children_.end() ; it++) {
           if (it->first == hash) {
             BPTNode<T>* child = it->second;
@@ -291,6 +290,20 @@ namespace BPT
         return (!isLeaf_ && children_.size() >= degree_ / 2) || parent_ == nullptr;
       }
 
+      void DeepCopyFrom(BPTNode<T> *n) {
+        isLeaf_ = n->IsLeaf();
+        if (n->IsLeaf()) {
+          for (std::pair<uint64_t, T> k : n->GetKeys()) {
+            AddItem(k.first, k.second);
+          }
+        } else {
+          for (std::pair<uint64_t, BPTNode<T>*> c : n->GetChildren()) {
+            children_.push_back(std::make_pair(c.first, new BPTNode<T>(degree_, this)));
+            children_.back().second->DeepCopyFrom(c.second);
+          }
+        }
+      }
+
     public:
       static bool CompareKeys(const std::pair<uint64_t, T>& t1, const std::pair<uint64_t, T>& t2) {
         return t1.first < t2.first;
@@ -306,8 +319,6 @@ namespace BPT
           for (auto it(children_.begin()) ; it != children_.end() ; ++it) {
             if (it->first == oldKey) {
               bool updateParent = (parent_ != nullptr && it == children_.begin());
-
-              BPTNode<T>* node = it->second;
 
               it->first = newKey;
               if (updateParent) {

@@ -8,6 +8,8 @@ set(CMAKE_CXX_STANDARD 14)
 # Set names
 set(EXECUTABLE_NAME bptree)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+
 # Add the source directory
 add_subdirectory(src)
 
