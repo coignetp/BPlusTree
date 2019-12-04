@@ -72,10 +72,27 @@ static void BM_TreeSearch(benchmark::State& state) {
   }
 
   state.counters["Search/s"] = benchmark::Counter(iterations, benchmark::Counter::kIsRate);
-  state.counters["Missed"] = benchmark::Counter(missed);
+  state.counters["Missed %"] = benchmark::Counter(100 * missed / iterations);
+}
+
+static void BM_TreeDelete(benchmark::State& state) {
+  InitiateDatasetAndSamples();
+  BPT::BPTree<int> bpt(state.range(0), hashFunc);
+  bpt.DeepCopyFrom(samples[state.range(0)].get());
+
+  double iterations(0);
+
+  for (auto _ : state) {
+    iterations++;
+    bpt.DeleteItem(dataset[iterations]);
+  }
+
+  state.counters["Deletion/s"] = benchmark::Counter(iterations, benchmark::Counter::kIsRate);
 }
 
 // Register the function as a benchmark
 BENCHMARK(BM_TreeInsertion)->RangeMultiplier(2)->Range(8, 8 << 10);
 
 BENCHMARK(BM_TreeSearch)->RangeMultiplier(2)->Range(8, 8 << 10);
+
+BENCHMARK(BM_TreeDelete)->RangeMultiplier(2)->Range(8, 8 << 10);

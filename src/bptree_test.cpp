@@ -46,3 +46,17 @@ TEST (TreeDeleteItemTest, Complete) {
     std::cout << e.what();
   }
 }
+
+TEST (TreeDeepCopy, Complete) {
+  BPT::BPTree<int> bpt(5, hashFunc);
+
+  for (int i(0) ; i < 100 ; i++) {
+    bpt.AddItem(i);
+  }
+
+  BPT::BPTree<int> clone(5, hashFunc);
+  clone.DeepCopyFrom(&bpt);
+
+  for (int i(0) ; i < 100 ; i++)
+    ASSERT_EQ(clone.SearchItem(i), i);
+}

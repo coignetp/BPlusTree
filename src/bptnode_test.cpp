@@ -129,3 +129,17 @@ TEST (NodeDeleteNode, SimpleDelete) {
 
   ASSERT_EQ(node.GetThisChild(0)->GetThisItem(0), 2);
 }
+
+TEST (NodeDeepCopy, SimpleNode) {
+  BPT::BPTNode<int> node(8);
+
+  for (int i(0) ; i < 7 ; i++) {
+    node.AddItem(i, i);
+  }
+
+  BPT::BPTNode<int> clone(8);
+  clone.DeepCopyFrom(&node);
+
+  for (int i(0) ; i < 7 ; i++)
+    ASSERT_EQ(clone.GetItem(i), i);
+}
