@@ -147,10 +147,9 @@ class BPTNode {
     BPTNode<T> newNode(degree_, parent_ ? parent_ : this);
     int s = keys_.size();
 
-    for (int i(s); i > s / 2; i--) {
-      newNode.AddItem(keys_.back().first, keys_.back().second);
-      keys_.pop_back();
-    }
+    auto splitIterator = std::next(keys_.begin(), s/2);
+    newNode.AddMultipleItems(splitIterator, keys_.end());
+    keys_.erase(splitIterator, keys_.end());
 
     if (parent_ != nullptr) {
       parent_->AddNode(new BPTNode<T>(newNode));
@@ -316,6 +315,14 @@ class BPTNode {
             std::make_pair(c.first, new BPTNode<T>(degree_, this)));
         children_.back().second->DeepCopyFrom(c.second);
       }
+    }
+  }
+
+  // Add multiple items and then sort it. Used only by the split method
+  void AddMultipleItems(typename BPTContainer<T>::iterator firstItem, typename BPTContainer<T>::iterator lastItem) {
+    while (firstItem != lastItem) {
+      keys_.push_back(std::make_pair(firstItem->first, firstItem->second));
+      firstItem++;
     }
   }
 
