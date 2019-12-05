@@ -4,7 +4,6 @@ set(Srcdir src)
 
 set(Root_Srcs
     ${Srcdir}/bptree.hpp
-    ${Srcdir}/bptnode.hpp
 )
 
 set(Complete_Srcs
@@ -18,7 +17,6 @@ set(Complete_Srcs
 set(Tests_Srcs
     ${Root_Srcs}
     ${Srcdir}/bptree_test.cpp
-    ${Srcdir}/bptnode_test.cpp
     ${Srcdir}/main_test.cpp
 
     PARENT_SCOPE
@@ -28,7 +26,6 @@ set(Tests_Srcs
 set(Benchmark_Srcs
     ${Root_Srcs}
     ${Srcdir}/bptree_benchmark.cpp
-    ${Srcdir}/bptnode_benchmark.cpp
     ${Srcdir}/main_benchmark.cpp
 
     PARENT_SCOPE
