@@ -19,7 +19,7 @@ template <typename T>
 class BPTNode {
  public:
   template <typename U>
-  using BPTContainer = std::list<std::pair<uint64_t, U> >;
+  using BPTContainer = std::map<uint64_t, U>;
 
  public:
   BPTNode(const unsigned int degree, BPTNode<T>* parent = nullptr)
@@ -114,8 +114,8 @@ class BPTNode {
   // Add an item to this node or one of its child node
   void AddItem(uint64_t hash, T item) {
     if (isLeaf_) {
-      uint64_t firstHash = keys_.front().first;
-      SortedInsertKeys(hash, item);
+      uint64_t firstHash = keys_.begin()->first;
+      keys_.insert(std::make_pair(hash, item));
 
       if (hash < firstHash && parent_ != nullptr) {
         parent_->UpdateKeysFromChild(firstHash, hash);
@@ -138,7 +138,7 @@ class BPTNode {
           return;
         }
       }
-      children_.back().second->AddItem(hash, item);
+      std::prev(children_.end())->second->AddItem(hash, item);
     }
   }
 
@@ -157,14 +157,14 @@ class BPTNode {
       BPTNode<T> oldNode(degree_, newNode.GetParent());
 
       while (!keys_.empty()) {
-        oldNode.AddItem(keys_.back().first, keys_.back().second);
-        keys_.pop_back();
+        oldNode.AddItem(std::prev(keys_.end())->first, std::prev(keys_.end())->second);
+        keys_.erase(std::prev(keys_.end()));
       }
 
       keys_.clear();
-      children_.push_back(
+      children_.insert(
           std::make_pair(oldNode.GetThisItem(0), new BPTNode<T>(oldNode)));
-      children_.push_back(
+      children_.insert(
           std::make_pair(newNode.GetThisItem(0), new BPTNode<T>(newNode)));
     }
   }
@@ -178,7 +178,7 @@ class BPTNode {
     else
       h = n->GetChildHash(0);
 
-    SortedInsertChildren(h, n);
+    children_.insert(std::make_pair(h, n));
 
     if (children_.size() > degree_) {
       SplitNode();
@@ -192,16 +192,16 @@ class BPTNode {
       if (children_.empty()) {
         p = this;
       } else {
-        p = children_.front().second->GetParent();
+        p = children_.begin()->second->GetParent();
       }
     }
     BPTNode<T>* newNode = new BPTNode<T>(degree_, p);
     int s = children_.size();
 
     for (int i(s); i > s / 2; i--) {
-      children_.back().second->SetParent(newNode);
-      newNode->AddNode(children_.back().second);
-      children_.pop_back();
+      std::prev(children_.end())->second->SetParent(newNode);
+      newNode->AddNode(std::prev(children_.end())->second);
+      children_.erase(std::prev(children_.end()));
     }
 
     if (parent_ != nullptr) {
@@ -210,14 +210,14 @@ class BPTNode {
       BPTNode<T>* oldNode = new BPTNode<T>(degree_, newNode->GetParent());
 
       while (!children_.empty()) {
-        children_.back().second->SetParent(oldNode);
-        oldNode->AddNode(children_.back().second);
-        children_.pop_back();
+        std::prev(children_.end())->second->SetParent(oldNode);
+        oldNode->AddNode(std::prev(children_.end())->second);
+        children_.erase(std::prev(children_.end()));
       }
 
       children_.clear();
-      children_.push_back(std::make_pair(oldNode->GetChildHash(0), oldNode));
-      children_.push_back(std::make_pair(newNode->GetChildHash(0), newNode));
+      children_.insert(std::make_pair(oldNode->GetChildHash(0), oldNode));
+      children_.insert(std::make_pair(newNode->GetChildHash(0), newNode));
     }
   }
 
@@ -249,11 +249,11 @@ class BPTNode {
           return ret;
         }
       }
-      BPTNode<T>* backNode = children_.back().second;
+      BPTNode<T>* backNode = std::prev(children_.end())->second;
       ret = backNode->DeleteItem(item);
       if ((backNode->IsLeaf() && !backNode->HasEnoughKey()) ||
           (!backNode->IsLeaf() && !backNode->HasEnoughChildren())) {
-        RemoveChild(children_.back().first);
+        RemoveChild(std::prev(children_.end())->first);
       }
     }
 
@@ -311,9 +311,9 @@ class BPTNode {
       }
     } else {
       for (std::pair<uint64_t, BPTNode<T>*> c : n->GetChildren()) {
-        children_.push_back(
+        children_.insert(
             std::make_pair(c.first, new BPTNode<T>(degree_, this)));
-        children_.back().second->DeepCopyFrom(c.second);
+        std::prev(children_.end())->second->DeepCopyFrom(c.second);
       }
     }
   }
@@ -321,20 +321,9 @@ class BPTNode {
   // Add multiple items and then sort it. Used only by the split method
   void AddMultipleItems(typename BPTContainer<T>::iterator firstItem, typename BPTContainer<T>::iterator lastItem) {
     while (firstItem != lastItem) {
-      keys_.push_back(std::make_pair(firstItem->first, firstItem->second));
+      keys_.insert(std::make_pair(firstItem->first, firstItem->second));
       firstItem++;
     }
-  }
-
- public:
-  static bool CompareKeys(const std::pair<uint64_t, T>& t1,
-                          const std::pair<uint64_t, T>& t2) {
-    return t1.first < t2.first;
-  }
-
-  static bool CompareChildren(const std::pair<uint64_t, BPTNode<T>*>& t1,
-                              const std::pair<uint64_t, BPTNode<T>*>& t2) {
-    return t1.first < t2.first;
   }
 
  private:
@@ -342,11 +331,14 @@ class BPTNode {
   // deletion
   bool UpdateKeysFromChild(const uint64_t& oldKey, const uint64_t newKey) {
     if (!isLeaf_) {
+      children_.insert(std::make_pair(newKey, nullptr));
+      bool updateParent = (parent_ != nullptr && children_.begin()->first != newKey);
       for (auto it(children_.begin()); it != children_.end(); ++it) {
         if (it->first == oldKey) {
-          bool updateParent = (parent_ != nullptr && it == children_.begin());
+          // bool updateParent = (parent_ != nullptr && it == children_.begin());
 
-          it->first = newKey;
+          children_[newKey] = it->second;
+          it = children_.erase(it);
           if (updateParent) {
             return parent_->UpdateKeysFromChild(oldKey, newKey);
           }
@@ -355,28 +347,6 @@ class BPTNode {
       }
     }
     return false;
-  }
-
-  // Insert in a sorted list
-  void SortedInsertKeys(uint64_t hash, T item) {
-    for (auto it(keys_.begin()); it != keys_.end(); ++it) {
-      if (hash < it->first) {
-        keys_.insert(it, std::make_pair(hash, item));
-        return;
-      }
-    }
-    keys_.push_back(std::make_pair(hash, item));
-  }
-
-  // Insert in a sorted list
-  void SortedInsertChildren(uint64_t hash, BPTNode<T>* n) {
-    for (auto it(children_.begin()); it != children_.end(); ++it) {
-      if (hash < it->first) {
-        children_.insert(it, std::make_pair(hash, n));
-        return;
-      }
-    }
-    children_.push_back(std::make_pair(hash, n));
   }
 
  private:
