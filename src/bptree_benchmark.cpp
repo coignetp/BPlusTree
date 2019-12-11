@@ -9,7 +9,7 @@
 
 uint64_t hashFunc(int a) { return a; }
 
-std::vector<int> dataset(1e5);
+std::vector<int> dataset(1e6);
 std::map<int, std::shared_ptr<BPT::BPTree<int>>> samples;
 std::vector<int> degrees{8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192};
 bool datasetInitiated(false);
