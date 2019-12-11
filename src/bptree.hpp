@@ -325,7 +325,7 @@ class BPTNode {
   // Add multiple items and then sort it. Used only by the split method
   void AddMultipleItems(typename BPTContainer<T>::iterator firstItem, typename BPTContainer<T>::iterator lastItem) {
     while (firstItem != lastItem) {
-      keys_.insert(std::make_pair(firstItem->first, firstItem->second));
+      keys_.insert(keys_.end(), std::make_pair(firstItem->first, firstItem->second));
       firstItem++;
     }
   }
@@ -339,7 +339,6 @@ class BPTNode {
       bool updateParent = (parent_ != nullptr && children_.begin()->first != newKey);
       for (auto it(children_.begin()); it != children_.end(); ++it) {
         if (it->first == oldKey) {
-          // bool updateParent = (parent_ != nullptr && it == children_.begin());
 
           children_[newKey] = it->second;
           it = children_.erase(it);
