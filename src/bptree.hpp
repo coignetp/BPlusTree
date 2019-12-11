@@ -57,15 +57,12 @@ class BPTNode {
   T& GetItem(const uint64_t& hash) {
     if (!isLeaf_) throw std::logic_error("Not a leaf node");
 
-    for (auto it(keys_.begin()); it != keys_.end(); ++it) {
-      if (hash == it->first) {
-        T& ret = it->second;
-        return ret;
-      }
-    }
-    throw std::out_of_range("Item not found");
+    auto it = keys_.find(hash);
 
-    return keys_.begin()->second;
+    if (it == keys_.end())
+      throw std::out_of_range("Item not found");
+
+    return it->second;
   }
 
   // Get the item number index in this leaf node
@@ -86,15 +83,12 @@ class BPTNode {
   BPTNode<T>* GetChild(const uint64_t& hash) {
     if (!isLeaf_) throw std::logic_error("Not a leaf node");
 
-    for (auto it(children_.begin()); it != children_.end(); ++it) {
-      if (hash == it->first) {
-        BPTNode<T>* ret = it->second;
-        return ret;
-      }
-    }
-    throw std::out_of_range("Item not found");
+    auto it = children_.find(hash);
 
-    return children_.begin()->second;
+    if (it == children_.end())
+      throw std::out_of_range("Item not found");
+
+    return it->second;
   }
 
   // Get the child node number index
@@ -109,6 +103,23 @@ class BPTNode {
     if ((unsigned)index >= children_.size())
       throw std::out_of_range("Index out of range");
     return std::next(children_.begin(), index)->first;
+  }
+
+  // Get the lower child bound
+  BPTNode<T> *GetLowerBoundChild(const uint64_t &hash) {
+    if (isLeaf_)
+      throw std::exception_ptr();
+    
+    auto it = children_.find(hash);
+    if (it != children_.end())
+      return it->second;
+
+    it = children_.upper_bound(hash);
+
+    if (it == children_.begin())
+      return it->second;
+
+    return std::prev(it)->second;
   }
 
   // Add an item to this node or one of its child node
@@ -131,14 +142,7 @@ class BPTNode {
       }
 
     } else {
-      for (auto it(std::next(children_.begin())); it != children_.end(); ++it) {
-        if (hash < it->first) {
-          BPTNode<T>* node = std::prev(it)->second;
-          node->AddItem(hash, item);
-          return;
-        }
-      }
-      std::prev(children_.end())->second->AddItem(hash, item);
+      GetLowerBoundChild(hash)->AddItem(hash, item);
     }
   }
 
@@ -401,14 +405,8 @@ class BPTree {
       throw std::out_of_range("Searching in an empty BPTree");
 
     while (!node->IsLeaf()) {
-      bool found = false;
-      for (int i(1); i < node->Length() && !found; i++) {
-        if (item < node->GetChildHash(i)) {
-          node = node->GetThisChild(i - 1);
-          found = true;
-        }
-      }
-      if (!found) node = node->GetThisChild(node->Length() - 1);
+      node = node->GetLowerBoundChild(item);
+
     }
 
     return node;
