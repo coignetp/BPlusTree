@@ -230,12 +230,12 @@ class BPTNode {
   bool DeleteItem(const uint64_t& item) {
     bool ret = false;
     if (isLeaf_) {
-      for (auto it(keys_.begin()); it != keys_.end(); ++it) {
-        if (it->first == item) {
-          it = keys_.erase(it);
-          return true;
-        }
-      }
+      auto it = keys_.find(item);
+      if (it == keys_.end())
+        return false;
+
+      keys_.erase(it);
+      return true;
     } else {
       for (auto it(std::next(children_.begin())); it != children_.end(); ++it) {
         if (item < it->first) {
