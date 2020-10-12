@@ -8,6 +8,13 @@
 #include <vector>
 
 uint64_t hashFunc(int a) { return a; }
+uint64_t hashFuncMult(int a) { return a + 3; }
+uint64_t hashFuncStr(int a) { 
+  std::hash<std::string> h;
+  return uint64_t(h(std::to_string(a)));
+}
+
+std::vector<std::function<uint64_t(const int&)>> hashFuncVector{hashFunc, hashFuncMult, hashFuncStr};
 
 std::vector<int> dataset(1e6);
 std::map<int, std::shared_ptr<BPT::BPTree<int>>> samples;
@@ -89,9 +96,27 @@ static void BM_TreeDelete(benchmark::State& state) {
       benchmark::Counter(iterations, benchmark::Counter::kIsRate);
 }
 
+static void BM_TreeHashFunction(benchmark::State& state) {
+  InitiateDatasetAndSamples();
+  std::cout << state.range(0) << std::endl;
+  BPT::BPTree<int> bpt(2048, hashFuncVector[state.range(0)]);
+
+  double iterations(0);
+  for (auto _ : state) {
+    iterations++;
+    bpt.AddItem(dataset[iterations]);
+    bpt.SearchItem(dataset[iterations]);
+  }
+
+  state.counters["I&S/s"] =
+      benchmark::Counter(iterations, benchmark::Counter::kIsRate);
+}
+
 // Register the function as a benchmark
 BENCHMARK(BM_TreeInsertion)->RangeMultiplier(2)->Range(8, 8 << 10);
 
 BENCHMARK(BM_TreeSearch)->RangeMultiplier(2)->Range(8, 8 << 10);
 
 BENCHMARK(BM_TreeDelete)->RangeMultiplier(2)->Range(8, 8 << 10);
+
+BENCHMARK(BM_TreeHashFunction)->Arg(0)->Arg(1);
