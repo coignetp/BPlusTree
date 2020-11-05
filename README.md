@@ -1,4 +1,5 @@
 ![CI](https://github.com/coignetp/BPlusTree/workflows/C/C++%20CI/badge.svg?branch=master)
+ [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 # Description
 This project is an implementation of a [BPlusTree](https://en.wikipedia.org/wiki/B%2B_tree) in C++. The goal is to make an easy to use performant single header library.
 
