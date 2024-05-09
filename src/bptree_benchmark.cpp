@@ -1,4 +1,4 @@
-#include "../third_party/benchmark/include/benchmark/benchmark.h"
+#include <benchmark/benchmark.h>
 
 #include "bptree.hpp"
 

@@ -11,9 +11,7 @@ jobs:
     - uses: actions/checkout@v1
       with:
         submodules: recursive
-    - name: configure
-      run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release ..
     - name: build
-      run: cmake --build build
+      run: bazel build //...
     - name: test
-      run: cd build && ./bptree_test
+      run: bazel test //...
