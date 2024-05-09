@@ -9,19 +9,18 @@ This project uses gtest for the tests, google benchmark for benchmarks. They are
 # Installation
 ## Prerequisites
 C++ version must be at least C++14.  
-CMake must be at least version 3.1.
 
 ## Compilation
 ```
-mkdir build
-cd build
-cmake ..
-cmake --build .
+bzl build //src/:bptree
+bzl test //...
 ```
 There are 2 output executable, one for the test and one for the benchmark.
 
 ## External use
 You can use this BPlusTree with simply including the header file `src/bptree.hpp`. A documentation will be made (TODO).
+
+TODO: bazel build
 
 Example in code:
 ```C++

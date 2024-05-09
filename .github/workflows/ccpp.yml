@@ -8,10 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
         submodules: recursive
     - name: build
-      run: bazel build //...
+      run: bazel build //src/...
     - name: test
-      run: bazel test //...
+      run: bazel test //src/...
