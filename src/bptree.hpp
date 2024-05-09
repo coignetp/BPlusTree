@@ -6,6 +6,7 @@
 #include <list>
 #include <memory>
 #include <vector>
+#include <stdexcept>
 
 // Everything is in the same header file here.
 // It makes it easier to use it as a dependency.
